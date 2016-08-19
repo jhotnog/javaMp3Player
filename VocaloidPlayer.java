@@ -9,6 +9,7 @@
  * @version 1.1 Added shuffle and skip functions
  * @author Jeff Hotnog
  */
+import java.io.*;
 import java.net.URL;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -33,10 +34,31 @@ import java.util.Random;
 
 public class VocaloidPlayer extends Application {
     static int order;
+    static int backgroundNum;
 	@Override public void start(Stage stage) throws Exception {
         Random rand = new Random();
         order = 0;
-        List<String> songs = this.getParameters().getRaw();
+        backgroundNum = 0;
+
+        // Previously used for command line usage
+        //List<String> songs = this.getParameters().getRaw();
+        List<String> songs = new ArrayList<>();
+
+        String homeDir = System.getProperty("user.home");
+
+        // Path variable needs to be changed before running program
+        // based on user's file directory structure.
+        String musicPath = homeDir + "/Documents/Java Programs/javaMp3Player/Resources/";
+        File folder = new File(musicPath);
+        File[] listOfFiles = folder.listFiles();
+
+        for(int i = 0; i < listOfFiles.length; i++) {
+            if(listOfFiles[i].isFile()) {
+                String fileName = listOfFiles[i].getName();
+                songs.add(fileName);
+            }
+        }
+
         List<URL> songList = new ArrayList<>();
         for (int i = 0; i < songs.size(); i++) {
             String song = "/Resources/" + songs.get(i);
@@ -58,16 +80,27 @@ public class VocaloidPlayer extends Application {
 
         Group layout = new Group();
 
-		Image backgroundImage = new Image("/Resources/background.png", 420, 0, false, false);
+        String imagePath = homeDir + "/Documents/Java Programs/javaMp3Player/Resources/Backgrounds/";
+        File imageFolder = new File(imagePath);
+        File[] listOfImageFiles = imageFolder.listFiles();
+        Image[] backgrounds = new Image[listOfImageFiles.length];
+
+        for(int i = 0; i < listOfImageFiles.length; i++) {
+            if(listOfImageFiles[i].isFile()) {
+                backgrounds[i] = new Image(listOfImageFiles[i].toURI().toString(), 480,380,false,false);
+            }
+        }
+
+		//Image backgroundImage = new Image("/Resources/Backgrounds/background.png", 420, 0, false, false);
         // Image needs to be in same directory as src file and one
         // can use any image, just needs to be named same as string parameter
         // above
 		ImageView iv1 = new ImageView();
-		iv1.setImage(backgroundImage);
+		iv1.setImage(backgrounds[backgroundNum]);
 
         layout.getChildren().add(iv1);
         Scene scene = new Scene(layout);
-		scene.setFill(Color.CYAN);
+		//scene.setFill(Color.CYAN);
 
 		/*TextField inputField = new TextField();
         //String songName = inputField.getText(); // File name of a song with *.mp3
@@ -95,6 +128,8 @@ public class VocaloidPlayer extends Application {
 
         ToggleButton repeatAll = new ToggleButton("Repeat All");
 
+        Button changeBackground = new Button("Background");
+
         if (playerArray.length == 0) {
             playButton.setDisable(true);
             pauseButton.setDisable(true);
@@ -108,6 +143,10 @@ public class VocaloidPlayer extends Application {
             shuffle.setDisable(true);
             prevSong.setDisable(true);
             nextSong.setDisable(true);
+        }
+
+        if(backgrounds.length < 2) {
+            changeBackground.setDisable(true);
         }
 
         playButton.setOnAction(e -> {
@@ -196,19 +235,30 @@ public class VocaloidPlayer extends Application {
             }
         });
 
+        changeBackground.setOnAction(e -> {
+            if(backgroundNum < backgrounds.length - 1) {
+                backgroundNum++;
+            }
+            else if(backgroundNum == backgrounds.length - 1) {
+                backgroundNum = 0;
+            }
+            iv1.setImage(backgrounds[backgroundNum]);
+        });
+
 		HBox entryBox = new HBox();
 		//entryBox.getChildren().add(inputField);
 		entryBox.getChildren().add(playButton);
-		entryBox.getChildren().add(pauseButton);
+		//entryBox.getChildren().add(pauseButton);
 		entryBox.getChildren().add(stopButton);
 		entryBox.getChildren().add(prevSong);
         entryBox.getChildren().add(nextSong);
         entryBox.getChildren().add(repeat);
         entryBox.getChildren().add(repeatAll);
         entryBox.getChildren().add(shuffle);
+        entryBox.getChildren().add(changeBackground);
 		layout.getChildren().add(entryBox);
 
-		stage.setWidth(450);
+		stage.setWidth(480);
 		stage.setHeight(380);
         stage.setResizable(false);
         // Window can be resized by changing above values
